@@ -1,0 +1,37 @@
+{
+  "name": "gulp-directory-sync",
+  "description": "A gulp plugin to sync 2 directories which actually works.",
+  "version": "1.0.0",
+  "homepage": "https://github.com/peteward44/gulp-directory-sync",
+  "repository": {
+	"type": "git",
+	"url": "https://github.com/peteward44/gulp-directory-sync.git"
+  },
+  "author": "Pete Ward <peteward44@gmail.com>",
+  "main": "./index.js",
+  "keywords": [
+    "gulpplugin",
+	"gulpfriendly"
+  ],
+  "dependencies": {
+    "through2": "*",
+	"gulp-util": "*",
+	"fs-extra": "*",
+	"crc": "~3.2.1"
+  },
+  "devDependencies": {
+  },
+  "engines": {
+    "node": ">= 0.10.0"
+  },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "https://github.com/peteward44/gulp-directory-sync/blob/master/LICENSE"
+    }
+  ],
+  "readmeFilename": "README.md",
+  "bugs": {
+    "url": "https://github.com/peteward44/gulp-directory-sync/issues"
+  }
+}
