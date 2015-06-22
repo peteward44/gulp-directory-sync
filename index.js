@@ -1,11 +1,11 @@
 /*jslint node: true */
 'use strict';
 
-var through = require('through2')
-	, gutil = require('gulp-util')
-	, fs = require('fs-extra')
-	, crc = require('crc')
-	, path = require('path');
+var through = require('through2');
+var gutil = require('gulp-util');
+var fs = require('fs-extra');
+var crc = require('crc');
+var path = require('path');
 
 var PLUGIN_NAME = 'directory-sync';
 var created = 0, removed = 0, updated = 0, same = 0;
