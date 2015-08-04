@@ -84,27 +84,31 @@ var create = function( src, dst ) {
 var dirSync = function(src, dst, options) {
 	options = options || {};
 
-	var func = function(file, enc, callback) {
-		
+	var func = function(callback) {		
 		if ( !src || !dst ) {
 			this.emit('error', new gutil.PluginError(PLUGIN_NAME, 'Invalid parameter'));
 			callback();
 			return;
 		}
+		created = removed = updated = same = 0;
 		
-		fs.mkdirsSync( dst );
+		fs.ensureDirSync( dst );
 		remove( src, dst );
 		create( src, dst );
 		
 		if ( options.printSummary ) {
 			gutil.log( 'Dir Sync: ' + created + ' files created, ' + updated + ' files updated, ' + removed + ' items deleted, ' + same + ' files unchanged' );
 		}
-		
-		this.push(file);
 		callback();
 	};
 
-	return through.obj(func);
+	return through.obj(
+		function( file, enc, callback ) {
+			this.push( file );
+			callback();
+		},
+		func
+	);
 };
 
 
