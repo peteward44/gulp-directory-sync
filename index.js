@@ -18,20 +18,23 @@ var areTheSame = function( src, dst ) {
 };
 
 
-var isIgnored = function( options, file ) {
+var isIgnored = function( options, dir, file ) {
 	if ( options.ignore ) {
-		var t = typeof options.ignore;
-		if ( t === 'function' ) {
-			return options.ignore( file );
-		} else if ( t === 'string' ) {
-			// comma separated filenames
-			return options.ignore.split( ',' ).some( function( file ) {
-				return file === t;
+		if ( Array.isArray( options.ignore ) ) {
+			return options.ignore.some( function( filter ) {
+				return isIgnored( { ignore: filter }, dir, file );
 			} );
 		} else {
-			// regular expression
-			var matches = options.ignore.exec( file );
-			return matches && matches.length > 0;
+			var t = typeof options.ignore;
+			if ( t === 'function' ) {
+				return options.ignore( dir, file );
+			} else if ( t === 'string' ) {
+				return options.ignore === file;
+			} else {
+				// regular expression
+				var matches = options.ignore.exec( file );
+				return matches && matches.length > 0;
+			}
 		}
 	}
 	return false;
@@ -42,7 +45,7 @@ var remove = function( options, src, dst ) {
 
 	var leaves = fs.readdirSync( dst );
 	leaves.forEach( function( leaf ) {
-		if ( isIgnored( options, leaf ) ) {
+		if ( isIgnored( options, dst, leaf ) ) {
 			return;
 		}
 		var fullSrc = path.join( src, leaf );
@@ -68,7 +71,7 @@ var create = function( options, src, dst ) {
 
 	var leaves = fs.readdirSync( src );
 	leaves.forEach( function( leaf ) {
-		if ( isIgnored( options, leaf ) ) {
+		if ( isIgnored( options, src, leaf ) ) {
 			return;
 		}
 		var fullSrc = path.join( src, leaf );
@@ -119,7 +122,9 @@ var dirSync = function(src, dst, options) {
 		created = removed = updated = same = 0;
 		
 		fs.ensureDirSync( dst );
-		remove( options, src, dst );
+		if ( !options.nodelete ) {
+			remove( options, src, dst );
+		}
 		create( options, src, dst );
 		
 		if ( options.printSummary ) {

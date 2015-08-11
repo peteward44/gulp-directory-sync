@@ -15,3 +15,15 @@ gulp.task( 'sync', function() {
 } );
 ```
 
+Supports the following options in the 3rd parameter:
+
+	- printSummary : Prints to console what has changed
+	- nodelete : Doesn't delete files from the dst folder, only copies
+	- ignore : Either a string, regex, or function to determine if a file should be processed. eg.
+	
+```
+	dirSync( 'my_source_dir', 'my_dest_dir', { ignore: /^\.svn$/i } ) // regex ignoring all .svn folders
+	dirSync( 'my_source_dir', 'my_dest_dir', { ignore: function( dir, file ) { return file === '.svn'; } } ) // function ignoring all .svn folders
+	dirSync( 'my_source_dir', 'my_dest_dir', { ignore: '.svn' } } ) // string ignoring all .svn folders
+	dirSync( 'my_source_dir', 'my_dest_dir', { ignore: [ /^\.svn$/i, '.git' ] } } ) // use an array to specify multiple filters
+```
