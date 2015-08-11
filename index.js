@@ -18,10 +18,33 @@ var areTheSame = function( src, dst ) {
 };
 
 
-var remove = function( src, dst ) {
+var isIgnored = function( options, file ) {
+	if ( options.ignore ) {
+		var t = typeof options.ignore;
+		if ( t === 'function' ) {
+			return options.ignore( file );
+		} else if ( t === 'string' ) {
+			// comma separated filenames
+			return options.ignore.split( ',' ).some( function( file ) {
+				return file === t;
+			} );
+		} else {
+			// regular expression
+			var matches = options.ignore.exec( file );
+			return matches && matches.length > 0;
+		}
+	}
+	return false;
+};
+
+
+var remove = function( options, src, dst ) {
 
 	var leaves = fs.readdirSync( dst );
 	leaves.forEach( function( leaf ) {
+		if ( isIgnored( options, leaf ) ) {
+			return;
+		}
 		var fullSrc = path.join( src, leaf );
 		var fullDst = path.join( dst, leaf );
 		if ( !fs.existsSync( fullSrc ) ) {
@@ -34,17 +57,20 @@ var remove = function( src, dst ) {
 			if ( statSrc.isFile() !== statDst.isFile() || statSrc.isDirectory() !== statDst.isDirectory() ) {
 				fs.deleteSync( fullDst ); // make sure they are the same type, else delete it
 			} else if ( statDst.isDirectory() ) {
-				remove( fullSrc, fullDst );
+				remove( options, fullSrc, fullDst );
 			}
 		}
 	} );
 };
 
 
-var create = function( src, dst ) {
+var create = function( options, src, dst ) {
 
 	var leaves = fs.readdirSync( src );
 	leaves.forEach( function( leaf ) {
+		if ( isIgnored( options, leaf ) ) {
+			return;
+		}
 		var fullSrc = path.join( src, leaf );
 		var fullDst = path.join( dst, leaf );
 		var existsDst = fs.existsSync( fullDst ); 
@@ -53,7 +79,7 @@ var create = function( src, dst ) {
 			if ( existsDst ) {
 				var statDst = fs.statSync( fullDst );
 				if ( statDst.isDirectory() ) {
-					// directory exists with same name as the file - delete it amd copy
+					// directory exists with same name as the file - delete it and copy
 					fs.deleteSync( fullDst );
 					fs.copySync( fullSrc, fullDst, { force: true } );
 					updated++;
@@ -75,7 +101,7 @@ var create = function( src, dst ) {
 			if ( !existsDst ) {
 				fs.mkdirsSync( fullDst );
 			}
-			create( fullSrc, fullDst );
+			create( options, fullSrc, fullDst );
 		}
 	} );
 };
@@ -93,8 +119,8 @@ var dirSync = function(src, dst, options) {
 		created = removed = updated = same = 0;
 		
 		fs.ensureDirSync( dst );
-		remove( src, dst );
-		create( src, dst );
+		remove( options, src, dst );
+		create( options, src, dst );
 		
 		if ( options.printSummary ) {
 			gutil.log( 'Dir Sync: ' + created + ' files created, ' + updated + ' files updated, ' + removed + ' items deleted, ' + same + ' files unchanged' );
