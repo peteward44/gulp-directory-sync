@@ -127,8 +127,11 @@ var dirSync = function(src, dst, options) {
 		}
 		create( options, src, dst );
 		
-		if ( options.printSummary ) {
+		var printSummaryType = typeof options.printSummary;
+		if ( printSummaryType === 'boolean' && options.printSummary === true ) {
 			gutil.log( 'Dir Sync: ' + created + ' files created, ' + updated + ' files updated, ' + removed + ' items deleted, ' + same + ' files unchanged' );
+		} else if ( printSummaryType === 'function' ) {
+			options.printSummary( { created: created, removed: removed, updated: updated, same: same } );
 		}
 		callback();
 	};
