@@ -17,7 +17,16 @@ gulp.task( 'sync', function() {
 
 Supports the following options in the 3rd parameter:
 
-	- printSummary : Prints to console what has changed
+	- printSummary : (Boolean) Prints to console what has changed - (Function) Allows custom result logging
+```
+	dirSync( 'my_source_dir', 'my_dest_dir', { printSummary: true } ) // outputs default message
+	dirSync( 'my_source_dir', 'my_dest_dir', {
+		printSummary: function( result ) {
+			gutil.log( 'Dir Sync: ' + result.created + ' files created, ' + result.updated + ' files updated, ' + result.removed + ' items deleted, ' + result.same + ' files unchanged' );
+		}
+	} )
+```
+
 	- nodelete : Doesn't delete files from the dst folder, only copies
 	- ignore : Either a string, regex, or function to determine if a file should be processed. eg.
 	
