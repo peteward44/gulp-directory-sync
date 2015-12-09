@@ -133,6 +133,7 @@ var dirSync = function(src, dst, options) {
 		} else if ( printSummaryType === 'function' ) {
 			options.printSummary( { created: created, removed: removed, updated: updated, same: same } );
 		}
+		this.resume();
 		callback();
 	};
 
