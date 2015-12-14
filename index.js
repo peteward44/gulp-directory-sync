@@ -51,14 +51,14 @@ var remove = function( options, src, dst ) {
 		var fullSrc = path.join( src, leaf );
 		var fullDst = path.join( dst, leaf );
 		if ( !fs.existsSync( fullSrc ) ) {
-			// exists in dst but not src - delete it
-			fs.deleteSync( fullDst );
+			// exists in dst but not src - remove it
+			fs.removeSync( fullDst );
 			removed++;
 		} else {
 			var statSrc = fs.statSync( fullSrc );
 			var statDst = fs.statSync( fullDst );
 			if ( statSrc.isFile() !== statDst.isFile() || statSrc.isDirectory() !== statDst.isDirectory() ) {
-				fs.deleteSync( fullDst ); // make sure they are the same type, else delete it
+				fs.removeSync( fullDst ); // make sure they are the same type, else remove it
 			} else if ( statDst.isDirectory() ) {
 				remove( options, fullSrc, fullDst );
 			}
@@ -82,8 +82,8 @@ var create = function( options, src, dst ) {
 			if ( existsDst ) {
 				var statDst = fs.statSync( fullDst );
 				if ( statDst.isDirectory() ) {
-					// directory exists with same name as the file - delete it and copy
-					fs.deleteSync( fullDst );
+					// directory exists with same name as the file - remove it and copy
+					fs.removeSync( fullDst );
 					fs.copySync( fullSrc, fullDst, { force: true } );
 					updated++;
 				} else if ( statDst.isFile() ) {
@@ -129,7 +129,7 @@ var dirSync = function(src, dst, options) {
 		
 		var printSummaryType = typeof options.printSummary;
 		if ( printSummaryType === 'boolean' && options.printSummary === true ) {
-			gutil.log( 'Dir Sync: ' + created + ' files created, ' + updated + ' files updated, ' + removed + ' items deleted, ' + same + ' files unchanged' );
+			gutil.log( 'Dir Sync: ' + created + ' files created, ' + updated + ' files updated, ' + removed + ' items removed, ' + same + ' files unchanged' );
 		} else if ( printSummaryType === 'function' ) {
 			options.printSummary( { created: created, removed: removed, updated: updated, same: same } );
 		}
