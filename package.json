@@ -19,7 +19,17 @@
     "gulp-util": "^3.0.7",
     "through2": "^2.0.0"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "ava": "^0.8.0",
+    "del-cli": "^0.1.2",
+    "gulp": "^3.9.0"
+  },
+  "scripts": {
+    "test": "de .tmp && ava test/test.js",
+    "test-default": "gulp --gulpfile=test/gulpfile.js default",
+    "test-print": "gulp --gulpfile=test/gulpfile.js print",
+    "test-ignore": "gulp --gulpfile=test/gulpfile.js ignore"
+  },
   "engines": {
     "node": ">= 0.10.0"
   },
