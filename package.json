@@ -14,9 +14,9 @@
     "gulpfriendly"
   ],
   "dependencies": {
-    "crc": "^3.2.1",
-    "fs-extra": "^0.22.1",
-    "gulp-util": "^3.0.6",
+    "crc": "^3.4.0",
+    "fs-extra": "^0.26.3",
+    "gulp-util": "^3.0.7",
     "through2": "^2.0.0"
   },
   "devDependencies": {},
