@@ -20,15 +20,11 @@
     "through2": "^2.0.0"
   },
   "devDependencies": {
-    "ava": "^0.8.0",
     "del-cli": "^0.1.2",
-    "gulp": "^3.9.0"
+    "mocha": "^2.3.4"
   },
   "scripts": {
-    "test": "de .tmp && ava test/test.js",
-    "test-default": "gulp --gulpfile=test/gulpfile.js default",
-    "test-print": "gulp --gulpfile=test/gulpfile.js print",
-    "test-ignore": "gulp --gulpfile=test/gulpfile.js ignore"
+    "test": "de .tmp && mocha test/test.js"
   },
   "engines": {
     "node": ">= 0.12.0"

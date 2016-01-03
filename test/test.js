@@ -1,53 +1,165 @@
-var fs = require('fs');
-var exec = require('child_process').exec;
-var test = require('ava');
-var directorySync = require('../');
+// Node.js libs
+var path = require('path');
+var fs = require('fs-extra');
+var assert = require('assert');
+// Gulp libs
+var gutil = require('gulp-util');
+// Module
+var dirSync = require('../');
 
-test.cb('default options', function( t ) {
-	exec('npm run test-default', function( err ) {
-		if ( err ) {
-			t.fail( err );
-		}
+// Recursively read a directory
+var recurseReadDir = function (root, files, prefix) {
+	prefix = prefix || '';
+	files = files || [];
 
-		var isTestTxt = fs.statSync( '../.tmp/default/test.txt' ).isFile();
-		var isOneTxt = fs.statSync( '../.tmp/default/one/one.txt' ).isFile();
-		var isTwoTxt = fs.statSync( '../.tmp/default/two/two.txt' ).isFile();
+	var dir = path.join(root, prefix);
+	if (!fs.existsSync(dir)) {
+		return files;
+	}
+	if (fs.statSync(dir).isDirectory()) {
+		fs.readdirSync(dir).forEach(function (name) {
+			recurseReadDir(root, files, path.join(prefix, name));
+		});
+	} else {
+		files.push(prefix);
+	}
 
-		t.is( isTestTxt && isOneTxt && isTwoTxt, true );
-		t.end();
+	return files;
+};
+
+// Creating test files
+var createFiles = function (filepath, count) {
+	fs.ensureDirSync(filepath);
+	for (var i = 0; i < count; i++) {
+		var testFile = path.join(filepath, 'test-' + i + '.txt');
+		fs.writeFileSync(testFile, 'test');
+	}
+};
+
+describe('Default task', function () {
+	it('Copying files', function () {
+		dirSync('test/fixtures/', '.tmp/copy/').end();
+		var result = recurseReadDir('.tmp/copy/');
+		assert.equal(result.length, 8);
+	});
+
+	it('Removing files', function () {
+		createFiles('.tmp/remove/', 3);
+		dirSync('test/fixtures/', '.tmp/remove/').end();
+		var result = recurseReadDir('.tmp/remove/');
+		assert.equal(result.length, 8);
+	});
+
+	it('Skipping files', function () {
+		dirSync('test/fixtures/', '.tmp/copy/').end();
+		dirSync('test/fixtures/', '.tmp/copy/').end();
+		var result = recurseReadDir('.tmp/copy/');
+		assert.equal(result.length, 8);
 	});
 });
 
-test.cb('printSummary option', function( t ) {
-	exec('npm run test-print', function( err, stdout ) {
-		if ( err ) {
-			t.fail( err );
-		}
+describe('Updating files', function () {
+	it('Remove file in `dest`', function () {
+		dirSync('test/fixtures/', '.tmp/update_dest/').end();
 
-		var isPrint = /Dir Sync: 4 files created/.test( stdout );
+		// Remove one file in the destination directory
+		fs.removeSync('.tmp/update_dest/folder-1/test.txt');
+		dirSync('test/fixtures/', '.tmp/update_dest/').end();
+		var result = recurseReadDir('.tmp/update_dest/');
+		assert.equal(result.length, 8);
+	});
 
-		t.is( isPrint, true );
-		t.end();
+	it('Remove file in `src`', function () {
+		// Backup test files
+		fs.copySync('test/fixtures/', '.tmp/fixtures_backup/');
+		dirSync('.tmp/fixtures_backup/', '.tmp/update_src/').end();
+
+		// Remove one file in the source directory
+		fs.removeSync('.tmp/fixtures_backup/folder-1/test.txt');
+		dirSync('.tmp/fixtures_backup/', '.tmp/update_src/').end();
+		var result = recurseReadDir('.tmp/update_src/');
+		assert.equal(result.length, 7);
+	});
+
+	it('Update with only copies (nodelete)', function () {
+		createFiles('.tmp/update_nodelete/', 3);
+		dirSync('test/fixtures/', '.tmp/update_nodelete/', {
+			nodelete: true
+		}).end();
+		var result = recurseReadDir('.tmp/update_nodelete/');
+		// File `test-2.txt` overwritten
+		assert.equal(result.length, 10);
 	});
 });
 
-test.cb('ignore option', function( t ) {
-	exec('npm run test-ignore', function( err ) {
-		if ( err ) {
-			t.fail( err );
-		}
+describe('Output statistics (printSummary)', function () {
+	it('Boolean', function () {
+		// Hook for console output
+		var stdout = 0;
+		gutil.log = function () {
+			stdout += JSON.stringify(arguments);
+		};
 
-		var isTestTxt;
-		var isOneTxt = fs.statSync( '../.tmp/ignore/one/one.txt' ).isFile();
-		var isTwoTxt = fs.statSync( '../.tmp/ignore/two/two.txt' ).isFile();
+		dirSync('test/fixtures/', '.tmp/print_boolean/', {
+			printSummary: true
+		}).end();
 
-		try {
-			isTestTxt = fs.statSync( '../.tmp/ignore/test.txt' );
-		} catch ( e ) {
-			isTestTxt = ( e.code === 'ENOENT' );
-		}
+		assert.equal(/8 files created/.test(stdout), true);
+	});
 
-		t.is( isTestTxt && isOneTxt && isTwoTxt, true );
-		t.end();
+	it('Function', function () {
+		// Hook for console output
+		var stdout = 0;
+		gutil.log = function () {
+			stdout += JSON.stringify(arguments);
+		};
+
+		dirSync('test/fixtures/', '.tmp/print_function/', {
+			printSummary: function (stat) {
+				gutil.log('created:' + stat.created);
+			}
+		}).end();
+
+		assert.equal(/created:8/.test(stdout), true);
+	});
+});
+
+describe('Ignoring files (ignore)', function () {
+	it('String', function () {
+		dirSync('test/fixtures/', '.tmp/ignore_string/', {
+			ignore: 'folder-1'
+		}).end();
+		var result = recurseReadDir('.tmp/ignore_string/');
+		assert.equal(result.length, 4);
+	});
+
+	it('Regex', function () {
+		dirSync('test/fixtures/', '.tmp/ignore_regex/', {
+			ignore: /^folder-1$/i
+		}).end();
+		var result = recurseReadDir('.tmp/ignore_regex/');
+		assert.equal(result.length, 4);
+	});
+
+	it('Array', function () {
+		dirSync('test/fixtures/', '.tmp/ignore_array/', {
+			ignore: [
+				'folder-1',
+				'test-2.txt'
+			]
+		}).end();
+		var result = recurseReadDir('.tmp/ignore_array/');
+		assert.equal(result.length, 2);
+	});
+
+	it('Function', function () {
+		dirSync('test/fixtures/', '.tmp/ignore_function/', {
+			ignore: function (dir, file) {
+				var fullPath = path.join(dir, file).replace(/\\/g, '/');
+				return Boolean(fullPath.indexOf('folder-1/test.txt') + 1);
+			}
+		}).end();
+		var result = recurseReadDir('.tmp/ignore_function/');
+		assert.equal(result.length, 7);
 	});
 });
