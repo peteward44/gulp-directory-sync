@@ -10,7 +10,7 @@ var path = require('path');
 var PLUGIN_NAME = 'directory-sync';
 var created = 0, removed = 0, updated = 0, same = 0;
 
-	
+
 var areTheSame = function( src, dst ) {
 	var s = crc.crc32(fs.readFileSync(src)).toString(16);
 	var d = crc.crc32(fs.readFileSync(dst)).toString(16);
@@ -76,7 +76,7 @@ var create = function( options, src, dst ) {
 		}
 		var fullSrc = path.join( src, leaf );
 		var fullDst = path.join( dst, leaf );
-		var existsDst = fs.existsSync( fullDst ); 
+		var existsDst = fs.existsSync( fullDst );
 		var statSrc = fs.statSync( fullSrc );
 		if ( statSrc.isFile() ) {
 			if ( existsDst ) {
@@ -113,20 +113,20 @@ var create = function( options, src, dst ) {
 var dirSync = function(src, dst, options) {
 	options = options || {};
 
-	var func = function(callback) {		
+	var func = function(callback) {
 		if ( !src || !dst ) {
 			this.emit('error', new gutil.PluginError(PLUGIN_NAME, 'Invalid parameter'));
 			callback();
 			return;
 		}
 		created = removed = updated = same = 0;
-		
+
 		fs.ensureDirSync( dst );
 		if ( !options.nodelete ) {
 			remove( options, src, dst );
 		}
 		create( options, src, dst );
-		
+
 		var printSummaryType = typeof options.printSummary;
 		if ( printSummaryType === 'boolean' && options.printSummary === true ) {
 			gutil.log( 'Dir Sync: ' + created + ' files created, ' + updated + ' files updated, ' + removed + ' items removed, ' + same + ' files unchanged' );
