@@ -7,6 +7,7 @@ npm install gulp-directory-sync --save-dev
 
 ```
 var dirSync = require( 'gulp-directory-sync' );
+var gutil = require('gulp-util');
 
 gulp.task( 'sync', function() {
 	return gulp.src( '' )
