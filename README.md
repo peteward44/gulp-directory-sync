@@ -1,4 +1,7 @@
 # gulp-directory-sync
+
+***This project is no longer maintained***
+
 A gulp plugin to sync 2 directories which actually works
 
 ```
